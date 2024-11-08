@@ -1,0 +1,185 @@
+import React, { useState } from 'react';
+import { AlertCircle, Copy, Flag } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+const CopyFlagModal = () => {
+  // State for form inputs
+  const [targetNamespace, setTargetNamespace] = useState("");
+  const [includeRollouts, setIncludeRollouts] = useState(false);
+  const [includeSegments, setIncludeSegments] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Mock data - replace with actual data from your system
+  const sourceFlag = {
+    name: "new-checkout-flow",
+    namespace: "production",
+    rollouts: [
+      { id: 1, name: "Beta Users", percentage: 20 },
+      { id: 2, name: "Premium Users", percentage: 50 }
+    ],
+    segments: [
+      { id: 1, name: "US Users", rules: ["country === 'US'"] },
+      { id: 2, name: "Mobile Users", rules: ["platform === 'mobile'"] }
+    ]
+  };
+
+  const availableNamespaces = [
+    { id: "staging", name: "Staging" },
+    { id: "development", name: "Development" },
+    { id: "qa", name: "QA" }
+  ];
+
+  // Handle the copy operation
+  const handleCopy = async () => {
+    if (!targetNamespace) return;
+    
+    setIsLoading(true);
+    try {
+      // Mock API call - replace with actual implementation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const copyPayload = {
+        sourceFlag: sourceFlag.name,
+        sourceNamespace: sourceFlag.namespace,
+        targetNamespace,
+        includeRollouts,
+        includeSegments
+      };
+      
+      console.log('Copying with payload:', copyPayload);
+      // Add your actual API call here
+      
+    } catch (error) {
+      console.error('Error copying flag:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Copy className="h-5 w-5" />
+            Copy Flag to Namespace
+          </DialogTitle>
+          <DialogDescription>
+            Copy "{sourceFlag.name}" and its configurations to another namespace
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Source Information */}
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <Flag className="h-4 w-4" />
+            <span>Source: {sourceFlag.namespace}</span>
+          </div>
+
+          {/* Target Namespace Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Target Namespace</label>
+            <Select
+              value={targetNamespace}
+              onValueChange={setTargetNamespace}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select namespace" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableNamespaces.map((ns) => (
+                  <SelectItem key={ns.id} value={ns.id}>
+                    {ns.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Include Rollouts Option */}
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="rollouts"
+              checked={includeRollouts}
+              onCheckedChange={setIncludeRollouts}
+            />
+            <div className="space-y-1">
+              <label
+                htmlFor="rollouts"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Include Rollouts
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Copy {sourceFlag.rollouts.length} rollout configurations
+              </p>
+            </div>
+          </div>
+
+          {/* Include Segments Option */}
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="segments"
+              checked={includeSegments}
+              onCheckedChange={setIncludeSegments}
+            />
+            <div className="space-y-1">
+              <label
+                htmlFor="segments"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Include Linked Segments
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Copy {sourceFlag.segments.length} linked segments
+              </p>
+            </div>
+          </div>
+
+          {/* Warning for linked resources */}
+          {(includeRollouts || includeSegments) && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Copying linked resources will override any existing configurations in the target namespace.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <DialogFooter className="sm:justify-start">
+          <div className="w-full flex justify-end gap-3">
+            <Button variant="outline">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCopy}
+              disabled={!targetNamespace || isLoading}
+            >
+              {isLoading ? "Copying..." : "Copy Flag"}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default CopyFlagModal;
